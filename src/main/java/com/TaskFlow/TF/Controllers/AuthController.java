@@ -2,6 +2,7 @@ package com.TaskFlow.TF.Controllers;
 
 import com.TaskFlow.TF.DTOs.UserRequests;
 import com.TaskFlow.TF.DTOs.UserResponse;
+import com.TaskFlow.TF.Security.JwtUtil;
 import com.TaskFlow.TF.Services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,6 +23,9 @@ public class AuthController {
 
     @Autowired
     private AuthenticationManager authenticationManager; // NEW: The "Bouncer"
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @PostMapping("/register")
     public UserResponse register(@RequestBody UserRequests request) {
@@ -44,9 +48,8 @@ public class AuthController {
 
             Authentication authentication = authenticationManager.authenticate(authToken);
 
-            // 3. IF WE REACH HERE, AUTH SUCCEEDED
-            System.out.println("AUTHENTICATION SUCCESSFUL for: " + authentication.getName());
-            return "Login successful for user: " + authentication.getName();
+            String  token = jwtUtil.generateToken(request.getUsername());
+            return token;
 
         } catch (AuthenticationException e) {
             // 4. PRINT THE EXACT SPRING SECURITY EXCEPTION
