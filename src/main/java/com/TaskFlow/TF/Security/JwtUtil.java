@@ -9,7 +9,7 @@ import java.util.Date;
 import java.util.function.Function;
 
 import java.security.Key;
-import java.util.Date;
+
 
 @Component
 public class JwtUtil {
@@ -25,8 +25,6 @@ public class JwtUtil {
 
     // 3. PUBLIC METHOD: Generate a token for a given username
     public String generateToken(String username) {
-        System.out.println("🔑 [GEN] Secret length: " + SECRET.length());
-        System.out.println("🔑 [GEN] Secret first 10 chars: '" + SECRET.substring(0, Math.min(10, SECRET.length())) + "'");
         return Jwts.builder()
                 .setSubject(username)                    // Who is this for? -> "john"
                 .setIssuedAt(new Date())                 // When was it created?
@@ -53,8 +51,6 @@ public class JwtUtil {
     // 4. A generic helper to extract any claim (Used by the above methods)
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
 
-        System.out.println("🔑 [VAL] Secret length: " + SECRET.length());
-        System.out.println("🔑 [VAL] Secret first 10 chars: '" + SECRET.substring(0, Math.min(10, SECRET.length())) + "'");
         final Claims claims = Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
