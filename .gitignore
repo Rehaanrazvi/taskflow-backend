@@ -1,0 +1,23 @@
+# Compiled code
+target/
+*.class
+
+# IDE files (IntelliJ / Eclipse / VS Code)
+.idea/
+*.iml
+.settings/
+.classpath
+.project
+.sts4-cache
+.vscode/
+
+# Logs
+*.log
+
+# Maven wrapper (we don't need to push this)
+.mvn/
+mvnw
+mvnw.cmd
+
+# CRITICAL: Keep your database credentials secret!
+src/main/resources/application.properties
