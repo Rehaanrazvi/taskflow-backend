@@ -8,12 +8,11 @@ import com.TaskFlow.TF.Models.User;
 import com.TaskFlow.TF.Repositories.UserRepository;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.lang.module.ResolutionException;
-import java.security.PublicKey;
+
 
 @Service
 public class UserService {
