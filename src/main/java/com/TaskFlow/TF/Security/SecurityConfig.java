@@ -3,6 +3,7 @@ package com.TaskFlow.TF.Security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -33,6 +34,7 @@ public class SecurityConfig {
                 // 3. URL Authorization Rules
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll() // Open registration/login
+                        .requestMatchers(HttpMethod.DELETE,"/tasks/**").hasRole("ADMIN")
                         .anyRequest().authenticated()           // Lock everything else
                 );
 

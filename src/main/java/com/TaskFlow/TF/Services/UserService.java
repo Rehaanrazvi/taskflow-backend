@@ -3,6 +3,7 @@ package com.TaskFlow.TF.Services;
 
 import com.TaskFlow.TF.DTOs.UserRequests;
 import com.TaskFlow.TF.DTOs.UserResponse;
+import com.TaskFlow.TF.Exceptions.ResourceNotFoundException;
 import com.TaskFlow.TF.Models.User;
 import com.TaskFlow.TF.Repositories.UserRepository;
 import jakarta.annotation.PostConstruct;
@@ -11,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.lang.module.ResolutionException;
 import java.security.PublicKey;
 
 @Service
@@ -23,7 +25,8 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
 
     public User findById(Long id){
-        return userRepository.findById(id).orElseThrow(()->new RuntimeException("User Not found by this id: "+id ));
+        return userRepository.findById(id)
+                .orElseThrow(()->new ResourceNotFoundException("User",id));
 
     }
     public UserResponse registerUser(UserRequests request){
@@ -41,7 +44,14 @@ public class UserService {
             User user = new User();
             user.setUsername("rehaan");
             user.setPassword(passwordEncoder.encode("password123"));
+            user.setRole("USER");
             userRepository.save(user);
+
+            User admin = new User();
+            admin.setUsername("admin");
+            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setRole("ADMIN");
+            userRepository.save(admin);
         }
     }
 

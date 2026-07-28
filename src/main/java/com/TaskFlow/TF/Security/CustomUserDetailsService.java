@@ -24,7 +24,7 @@ public class CustomUserDetailsService implements UserDetailsService { // 2. Impl
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getUsername())
                 .password(user.getPassword()) // This is the HASED password!
-                .roles("USER") // Default role for now
+                .roles(user.getRole()) // Default role for now
                 .build();
     }
 }

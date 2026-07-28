@@ -2,6 +2,8 @@ package com.TaskFlow.TF.Services;
 
 import com.TaskFlow.TF.DTOs.TaskRequest;
 import com.TaskFlow.TF.DTOs.TaskResponse;
+import com.TaskFlow.TF.DTOs.UpdateTaskRequest;
+import com.TaskFlow.TF.Exceptions.ResourceNotFoundException;
 import com.TaskFlow.TF.Models.Task;
 import com.TaskFlow.TF.Models.User;
 import com.TaskFlow.TF.Repositories.TaskRepository;
@@ -53,12 +55,32 @@ public class TaskService {
     }
 
     // 4. UPDATE (We'll finish this later)
-    public Task updateTask(Task task) {
-        return taskRepository.save(task);
+    public TaskResponse updateTask(Long id, UpdateTaskRequest request) {
+        // Find the existing task
+        Task existingTask = taskRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Task", id));
+
+        // Update only the fields that are provided (not null)
+        if (request.getTitle() != null) {
+            existingTask.setTitle(request.getTitle());
+        }
+        if (request.getDescription() != null) {
+            existingTask.setDescription(request.getDescription());
+        }
+        // For boolean, we always update it (since it has a default)
+        existingTask.setCompleted(request.isCompleted());
+
+        // Save and convert to DTO
+        Task updatedTask = taskRepository.save(existingTask);
+        return convertToResponse(updatedTask);
     }
+
 
     // 5. DELETE
     public void deleteTask(Long id) {
+        if (!taskRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Task", id);
+        }
         taskRepository.deleteById(id);
     }
 

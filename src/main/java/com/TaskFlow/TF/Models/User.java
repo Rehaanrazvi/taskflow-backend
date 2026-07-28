@@ -32,4 +32,6 @@ public class User {
     @JsonIgnore
     private List<Task> tasks = new ArrayList<>();
 
+    @Column(nullable = false)
+    private String role="USER";
 }
