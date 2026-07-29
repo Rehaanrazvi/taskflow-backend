@@ -3,6 +3,7 @@ package com.TaskFlow.TF.Services;
 
 import com.TaskFlow.TF.DTOs.UserRequests;
 import com.TaskFlow.TF.DTOs.UserResponse;
+import com.TaskFlow.TF.Exceptions.ResourceAlreadyExistsException;
 import com.TaskFlow.TF.Exceptions.ResourceNotFoundException;
 import com.TaskFlow.TF.Models.User;
 import com.TaskFlow.TF.Repositories.UserRepository;
@@ -30,7 +31,11 @@ public class UserService {
     }
     public UserResponse registerUser(UserRequests request){
         User user  = new User();
-        user.setUsername(request.getUsername());
+        String usName = request.getUsername();
+        if(userRepository.findByUsername(usName).isPresent()){
+            throw new ResourceAlreadyExistsException("Username",usName);
+        }
+        user.setUsername(usName);
         String hashedPassword = passwordEncoder.encode(request.getPassword());
         user.setPassword(hashedPassword);
 

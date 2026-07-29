@@ -50,7 +50,7 @@ public class TaskService {
     // 3. READ (Single)
     public TaskResponse getTaskById(Long id) {
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Task not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Task" , id));
         return convertToResponse(task);
     }
 
