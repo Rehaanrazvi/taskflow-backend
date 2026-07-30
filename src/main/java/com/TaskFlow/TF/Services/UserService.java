@@ -38,7 +38,7 @@ public class UserService {
         user.setUsername(usName);
         String hashedPassword = passwordEncoder.encode(request.getPassword());
         user.setPassword(hashedPassword);
-
+        user.setRole("USER");
         User savedUser = userRepository.save(user);
         return new UserResponse(savedUser.getId(), savedUser.getUsername());
     }
