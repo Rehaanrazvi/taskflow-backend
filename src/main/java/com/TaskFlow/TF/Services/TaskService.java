@@ -8,8 +8,12 @@ import com.TaskFlow.TF.Models.Task;
 import com.TaskFlow.TF.Models.User;
 import com.TaskFlow.TF.Repositories.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -24,11 +28,10 @@ public class TaskService {
     // 1. CREATE
     public TaskResponse createTask(TaskRequest request) {
         // Guard clause
-        if (request.getUser_id() == null) {
-            throw new IllegalArgumentException("User ID must not be null");
-        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String loggedInUser = authentication.getName();
 
-        User user = userService.findById(request.getUser_id());
+        User user = userService.findByUsername(loggedInUser);
         Task task = new Task();
         task.setUser(user);
         task.setTitle(request.getTitle());
@@ -41,36 +44,74 @@ public class TaskService {
 
     // 2. READ (All)
     public List<TaskResponse> getAllTasks() {
-        List<Task> tasks = taskRepository.findAll();
+
+        boolean isAdmin = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
+
+        List<Task> tasks = new ArrayList<>();
+        if (isAdmin) {
+            tasks = taskRepository.findAll();
+        }else{
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            tasks = taskRepository.findByUserUsername(username);
+        }
         return tasks.stream()
                 .map(this::convertToResponse) // Convert each task
                 .toList();
     }
 
     // 3. READ (Single)
+
     public TaskResponse getTaskById(Long id) {
+        // 1. Fetch the task
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Task" , id));
+                .orElseThrow(() -> new ResourceNotFoundException("Task", id));
+
+        // 2. Get logged-in user & check admin
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String loggedInUser = auth.getName();
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
+
+        // 3. Enforce ownership
+        boolean isOwner = task.getUser().getUsername().equals(loggedInUser);
+        if (!isOwner && !isAdmin) {
+            throw new AccessDeniedException("You do not own this task.");
+        }
+
+        // 4. Return the task
         return convertToResponse(task);
     }
 
-    // 4. UPDATE (We'll finish this later)
     public TaskResponse updateTask(Long id, UpdateTaskRequest request) {
-        // Find the existing task
+        // 1. Fetch the existing task
         Task existingTask = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task", id));
 
-        // Update only the fields that are provided (not null)
+        // 2. Get logged-in user & check admin
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String loggedInUser = auth.getName();
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
+
+
+        boolean isOwner = existingTask.getUser().getUsername().equals(loggedInUser);
+        if (!isOwner && !isAdmin) {
+            throw new AccessDeniedException("You do not own this task.");
+        }
+
+
         if (request.getTitle() != null) {
             existingTask.setTitle(request.getTitle());
         }
         if (request.getDescription() != null) {
             existingTask.setDescription(request.getDescription());
         }
-        // For boolean, we always update it (since it has a default)
         existingTask.setCompleted(request.isCompleted());
 
-        // Save and convert to DTO
+        // 5. Save and return
         Task updatedTask = taskRepository.save(existingTask);
         return convertToResponse(updatedTask);
     }
@@ -78,8 +119,17 @@ public class TaskService {
 
     // 5. DELETE
     public void deleteTask(Long id) {
-        if (!taskRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Task", id);
+        Task task = taskRepository.findById(id).
+                orElseThrow(()->new ResourceNotFoundException("Task",id));
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String loggedInUser = auth.getName();
+        boolean isAdmin = auth.getAuthorities().stream()
+                        .anyMatch(grantedAuthority -> grantedAuthority
+                                .getAuthority().equals("ROLE_ADMIN"));
+        boolean isOwner = task.getUser().getUsername().equals(loggedInUser);
+        if(!isAdmin && !isOwner){
+            throw new AccessDeniedException("You do not own this task or lack admin rights.");
         }
         taskRepository.deleteById(id);
     }

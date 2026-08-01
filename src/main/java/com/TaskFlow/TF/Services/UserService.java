@@ -29,6 +29,10 @@ public class UserService {
                 .orElseThrow(()->new ResourceNotFoundException("User",id));
 
     }
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", username));
+    }
     public UserResponse registerUser(UserRequests request){
         User user  = new User();
         String usName = request.getUsername();

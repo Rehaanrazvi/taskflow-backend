@@ -9,8 +9,6 @@ import lombok.Setter;
 @Setter
 public class TaskRequest {
 
-    @NotNull(message = "User ID is required")
-    private Long user_id;
     private String title;
     private  String description;
     private boolean completed;

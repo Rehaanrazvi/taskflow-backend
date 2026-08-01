@@ -34,7 +34,6 @@ public class SecurityConfig {
                 // 3. URL Authorization Rules
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll() // Open registration/login
-                        .requestMatchers(HttpMethod.DELETE,"/tasks/**").hasRole("ADMIN")
                         .anyRequest().authenticated()           // Lock everything else
                 );
 
