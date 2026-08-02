@@ -13,7 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+
 import java.util.List;
 
 @Service
@@ -29,6 +29,9 @@ public class TaskService {
     public TaskResponse createTask(TaskRequest request) {
         // Guard clause
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new AccessDeniedException("User is not authenticated.");
+        }
         String loggedInUser = authentication.getName();
 
         User user = userService.findByUsername(loggedInUser);
@@ -45,14 +48,17 @@ public class TaskService {
     // 2. READ (All)
     public List<TaskResponse> getAllTasks() {
 
-        boolean isAdmin = SecurityContextHolder.getContext().getAuthentication()
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) {
+            throw new AccessDeniedException("User is not authenticated.");
+        }
+        boolean isAdmin = auth
                 .getAuthorities().stream()
-                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
-
-        List<Task> tasks = new ArrayList<>();
+                .anyMatch(grantedAuthority -> "ROLE_ADMIN".equals(grantedAuthority.getAuthority()));
+        List<Task> tasks;
         if (isAdmin) {
             tasks = taskRepository.findAll();
-        }else{
+        } else {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             tasks = taskRepository.findByUserUsername(username);
@@ -71,12 +77,14 @@ public class TaskService {
 
         // 2. Get logged-in user & check admin
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) {
+            throw new AccessDeniedException("User is not authenticated.");
+        }
         String loggedInUser = auth.getName();
         boolean isAdmin = auth.getAuthorities().stream()
-                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
-
+                .anyMatch(grantedAuthority -> "ROLE_ADMIN".equals(grantedAuthority.getAuthority()));
         // 3. Enforce ownership
-        boolean isOwner = task.getUser().getUsername().equals(loggedInUser);
+        boolean isOwner = task.getUser() != null && task.getUser().getUsername().equals(loggedInUser);
         if (!isOwner && !isAdmin) {
             throw new AccessDeniedException("You do not own this task.");
         }
@@ -92,12 +100,14 @@ public class TaskService {
 
         // 2. Get logged-in user & check admin
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) {
+            throw new AccessDeniedException("User is not authenticated.");
+        }
         String loggedInUser = auth.getName();
         boolean isAdmin = auth.getAuthorities().stream()
-                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
+                .anyMatch(grantedAuthority -> "ROLE_ADMIN".equals(grantedAuthority.getAuthority()));
 
-
-        boolean isOwner = existingTask.getUser().getUsername().equals(loggedInUser);
+        boolean isOwner = existingTask.getUser() != null && existingTask.getUser().getUsername().equals(loggedInUser);
         if (!isOwner && !isAdmin) {
             throw new AccessDeniedException("You do not own this task.");
         }
@@ -120,15 +130,17 @@ public class TaskService {
     // 5. DELETE
     public void deleteTask(Long id) {
         Task task = taskRepository.findById(id).
-                orElseThrow(()->new ResourceNotFoundException("Task",id));
+                orElseThrow(() -> new ResourceNotFoundException("Task", id));
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) {
+            throw new AccessDeniedException("User is not authenticated.");
+        }
         String loggedInUser = auth.getName();
         boolean isAdmin = auth.getAuthorities().stream()
-                        .anyMatch(grantedAuthority -> grantedAuthority
-                                .getAuthority().equals("ROLE_ADMIN"));
-        boolean isOwner = task.getUser().getUsername().equals(loggedInUser);
-        if(!isAdmin && !isOwner){
+                .anyMatch(grantedAuthority -> "ROLE_ADMIN".equals(grantedAuthority.getAuthority()));
+        boolean isOwner = task.getUser() != null && task.getUser().getUsername().equals(loggedInUser);
+        if (!isAdmin && !isOwner) {
             throw new AccessDeniedException("You do not own this task or lack admin rights.");
         }
         taskRepository.deleteById(id);

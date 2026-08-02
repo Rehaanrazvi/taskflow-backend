@@ -4,6 +4,7 @@ import com.TaskFlow.TF.DTOs.UserRequests;
 import com.TaskFlow.TF.DTOs.UserResponse;
 import com.TaskFlow.TF.Security.JwtUtil;
 import com.TaskFlow.TF.Services.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,7 +29,7 @@ public class AuthController {
     private JwtUtil jwtUtil;
 
     @PostMapping("/register")
-    public UserResponse register(@RequestBody UserRequests request) {
+    public UserResponse register(@Valid @RequestBody UserRequests request) {
         // This just calls the service we already updated!
         return userService.registerUser(request);
     }

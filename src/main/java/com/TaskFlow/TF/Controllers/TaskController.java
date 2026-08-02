@@ -4,6 +4,7 @@ import com.TaskFlow.TF.DTOs.TaskRequest;
 import com.TaskFlow.TF.DTOs.TaskResponse;
 import com.TaskFlow.TF.DTOs.UpdateTaskRequest;
 import com.TaskFlow.TF.Services.TaskService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +31,7 @@ public class TaskController {
 
     // POST create
     @PostMapping
-    public TaskResponse createTask(@RequestBody TaskRequest taskRequest) {
+    public TaskResponse createTask(@Valid @RequestBody TaskRequest taskRequest) {
         return taskService.createTask(taskRequest);
     }
 
