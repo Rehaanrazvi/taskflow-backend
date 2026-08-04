@@ -34,6 +34,7 @@ public class SecurityConfig {
                 // 3. URL Authorization Rules
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll() // Open registration/login
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated()           // Lock everything else
                 );
 
